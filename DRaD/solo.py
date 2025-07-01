@@ -10,8 +10,8 @@ def download(timeframe):
     
 def reduce(timeframe, cadence):
 
-    from CIRESA import filefinder, read_cdf_to_df, get_coordinates
-    from CIRESA.utils import suppress_output
+    from DRaD import filefinder, read_cdf_to_df, get_coordinates
+    from DRaD.utils import suppress_output
     import pandas as pd
     import numpy as np
     from astropy.time import Time
@@ -296,7 +296,7 @@ def plot(solo_df):
 
 def load(month='all'):
         
-    from CIRESA import filefinder
+    from DRaD import filefinder
     import pandas as pd
 
     root_dir = 'reduced_data/solo'
@@ -319,7 +319,7 @@ def load(month='all'):
 
 def delete(month):
     
-    from CIRESA import filefinder
+    from DRaD import filefinder
     import os
 
     timeframe = filefinder.get_month_dates(month)
@@ -354,7 +354,7 @@ def delete(month):
 
 def download_reduce_save_space(month, cadence):
 
-    from CIRESA import solo, filefinder
+    from DRaD import solo, filefinder, utils
     import os
     import matplotlib.pyplot as plt
     import pandas as pd
@@ -379,7 +379,7 @@ def download_reduce_save_space(month, cadence):
 
         try:
             # Plot and save the figure
-            solo.plot(solo_df)
+            utils.plot_timeseries(solo_df)
             plt.savefig(f'solar_orbiter_data/monthly_plots/solo_{m}.png')
             plt.close()  # Close the plot to free up memory
         except Exception as e:

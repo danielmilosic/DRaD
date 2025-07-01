@@ -5,4 +5,4 @@ Solar Orbiter\
 Parker Solar Probe\
 STEREO-A\
 OMNI\
-MAVEN\
+MAVEN

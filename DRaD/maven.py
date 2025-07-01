@@ -92,8 +92,8 @@ def download(timeframe):
 
 def reduce(timeframe, cadence = '0.1H'):
 
-    from CIRESA import filefinder, read_cdf_to_df, get_coordinates
-    from CIRESA.utils import suppress_output
+    from DRaD import filefinder, read_cdf_to_df, get_coordinates
+    from DRaD.utils import suppress_output
     import pandas as pd
     import numpy as np
     from astropy.time import Time
@@ -422,10 +422,10 @@ def plot(maven_df):
 
 def load(month='all', reduce_cadence=None, interpolate=False):
         
-    from CIRESA import filefinder
+    from DRaD import filefinder
     import pandas as pd
 
-    root_dir = 'reduced_data/maven'
+    root_dir = 'reduced_data/maven_raw'
 
     
     files = filefinder.find_parquet_files(root_dir, month)
@@ -452,7 +452,7 @@ def load(month='all', reduce_cadence=None, interpolate=False):
 
 def delete(month):
     
-    from CIRESA import filefinder
+    from DRaD import filefinder
     import os
 
     timeframe = filefinder.get_month_dates(month)
@@ -478,7 +478,7 @@ def delete(month):
 
 def download_reduce_save_space(month, cadence):
 
-    from CIRESA import maven, filefinder
+    from DRaD import maven, filefinder, utils
     import os
     import matplotlib.pyplot as plt
 
@@ -490,7 +490,7 @@ def download_reduce_save_space(month, cadence):
         if pd.to_datetime(m) < pd.to_datetime('2014-03') :
             print('### NO MAVEN DATA BEFORE 2018-10 ###')
         else:
-            if os.path.exists('reduced_data\maven\maven_data'+m+'.parquet'):
+            if os.path.exists('reduced_data\maven_raw\maven_data'+m+'.parquet'):
                 maven_df = maven.load(m)
 
             else:
@@ -498,13 +498,21 @@ def download_reduce_save_space(month, cadence):
 
                 maven.download(timeframe)
                 maven_df = maven.reduce(timeframe, cadence)
-                maven_df.to_parquet('reduced_data\maven\maven_data'+m+'.parquet')
+                maven_df.to_parquet('reduced_data\maven_raw\maven_data'+m+'.parquet')
+                
+                maven_reduced_df = filter_sw(maven_df, interpolate=True)
+                maven_reduced_df.to_parquet('reduced_data\maven\maven'+month+'.parquet')
 
             try:
                 # Plot and save the figure
-                maven.plot(maven_df)
+                utils.plot_timeseries(maven_df)
+                plt.savefig(f'maven_raw_data/monthly_plots/maven_{m}.png')
+                plt.close()  # Close the plot to free up memory
+                
+                utils.plot_timeseries(maven_reduced_df)
                 plt.savefig(f'maven_data/monthly_plots/maven_{m}.png')
                 plt.close()  # Close the plot to free up memory
+
             except Exception as e:
                 print(f"Error plotting data for {m}: {e}")
             finally:

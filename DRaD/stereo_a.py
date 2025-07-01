@@ -1,4 +1,4 @@
-from CIRESA.utils import suppress_output
+from DRaD.utils import suppress_output
 
 def download(timeframe):
     import pyspedas
@@ -10,7 +10,7 @@ def download(timeframe):
     
 def reduce(timeframe, cadence):
 
-    from CIRESA import filefinder, read_cdf_to_df, get_coordinates
+    from DRaD import filefinder, read_cdf_to_df, get_coordinates
     import pandas as pd
     import numpy as np
     from astropy.time import Time
@@ -136,6 +136,10 @@ def reduce(timeframe, cadence):
 
     stereo_a_df['Spacecraft_ID'] = 4
 
+
+    for col in stereo_a_df.columns:
+        stereo_a_df.loc[stereo_a_df[col] < -1000, col] = np.nan
+
     return stereo_a_df
 
 
@@ -234,7 +238,7 @@ def plot(stereo_a_df):
 
 def load(month):
         
-    from CIRESA import filefinder
+    from DRaD import filefinder
     import pandas as pd
 
     root_dir = 'reduced_data/stereo_a'
@@ -257,11 +261,11 @@ def load(month):
 
 def delete(month):
     
-    from CIRESA import filefinder
+    from DRaD import filefinder
     import os
 
     timeframe = filefinder.get_month_dates(month)
-    root_dir = '/stereo_data/'
+    root_dir = 'stereo_data/'
     
     dir_impact = root_dir + '/impact/level1/ahead'
     dir_plastic = root_dir + '/plastic/level2/Protons/Derived_from_1D_Maxwellian/ahead'
@@ -292,7 +296,7 @@ def delete(month):
 
 def download_reduce_save_space(month, cadence):
 
-    from CIRESA import stereo_a, filefinder
+    from DRaD import stereo_a, filefinder, utils
     import os
     import matplotlib.pyplot as plt
 
@@ -314,7 +318,7 @@ def download_reduce_save_space(month, cadence):
 
         try:
             # Plot and save the figure
-            stereo_a.plot(stereo_a_df)
+            utils.plot_timeseries(stereo_a_df)
             plt.savefig(f'stereo_data/monthly_plots/stereo_a_{m}.png')
             plt.close()  # Close the plot to free up memory
         except Exception as e:
