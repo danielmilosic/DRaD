@@ -245,15 +245,22 @@ import numpy as np
 
 def filter_sw(df, cadence='6H', interpolate=False):
     
+    df['MSO_R(Total)'] = [np.sqrt(x**2 + y**2 + z**2) - 3398 for x, y, z in zip(df['X'], df['Y'], df['Z'])]
     def process_chunk(chunk):
         if chunk.empty:
             return pd.DataFrame()  # Return an empty DataFrame if the chunk is empty
 
         try:
+
+            #chunk = chunk[chunk['MSO_R(Total)'] > 500] #Halekas
+
             chunk = chunk[chunk['V'] < 1000]
             chunk = chunk[chunk['V'] > 250]
+            #chunk = chunk[chunk['V'] > 200] #Halekas
             chunk = chunk[chunk['V_T'] < 500]
             chunk = chunk[chunk['N'] < 150]
+            #chunk = chunk[chunk['N'] < 30] #Halekas
+
         except KeyError:
             pass
 

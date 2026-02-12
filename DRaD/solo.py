@@ -8,7 +8,74 @@ def download(timeframe):
     pyspedas.solo.mag(trange=timeframe, time_clip=True, get_support_data=True
                  , downloadonly=True)
     
-def reduce(timeframe, cadence):
+    
+
+import requests
+import urllib.parse
+import tarfile
+import os
+from datetime import datetime, timedelta
+
+
+
+def download_ll(START_DATE = "2025-10-01", END_DATE = "2025-10-05"):
+    # =========================
+    # CONFIGURATION
+    # =========================
+    OUTPUT_DIR = "C:/Users/14milosi/DRaD/solar_orbiter_data/swa_lowlatency"
+
+    # =========================
+    # HELPER FUNCTIONS
+    # =========================
+    def daterange(start_date, end_date):
+        for n in range(int((end_date - start_date).days) + 1):
+            yield start_date + timedelta(n)
+
+    def make_query_url(ymd):
+        """
+        Construct a proper SOAR TAP data query URL for SWA LL files on a given date.
+        """
+        # Proper ADQL with wildcard for SWA LL data_item_id
+        query  = f"SELECT filepath, filename FROM soar.v_ll_data_item WHERE data_item_id LIKE 'solo_LL%_swa-%_{ymd}%'"
+        encoded_query = urllib.parse.quote_plus(query)
+
+        base_url = "https://soar.esac.esa.int/soar-sl-tap/data"
+
+        url = f"{base_url}?product_type=LOW_LATENCY&retrieval_type=PRODUCT&QUERY={encoded_query}"
+        return url
+
+    def download_swa_lowlatency(date):
+        ymd = date.strftime("%Y%m%d")
+        url = make_query_url(ymd)
+        print(f"🔸 {ymd} → {url}")
+
+        response = requests.get(url)
+
+        if response.status_code == 200 and len(response.content) > 100:
+            tar_filename = os.path.join(OUTPUT_DIR, f"swa_LL_{ymd}.tar")
+            with open(tar_filename, "wb") as f:
+                f.write(response.content)
+
+            try:
+                with tarfile.open(tar_filename) as tar:
+                    tar.extractall(OUTPUT_DIR)
+                print(f"✅ Downloaded & extracted ({len(response.content)/1e6:.1f} MB)")
+            except tarfile.ReadError:
+                print("⚠️ Not a tar — maybe only one file?")
+        else:
+            print(f"❌ No data found ({response.status_code})")
+
+
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        start = datetime.strptime(START_DATE, "%Y-%m-%d")
+        end = datetime.strptime(END_DATE, "%Y-%m-%d")
+
+        for date in daterange(start, end):
+            download_swa_lowlatency(date)
+
+        print("\n🏁 Done.")
+
+def reduce(timeframe, cadence, ll=False):
 
     from DRaD import filefinder, read_cdf_to_df, get_coordinates
     from DRaD.utils import suppress_output
@@ -22,15 +89,22 @@ def reduce(timeframe, cadence):
 
     root_dir = 'solar_orbiter_data/'
     
-    dir_swa = root_dir + 'swa/science/l2/'
-    dir_his = root_dir + 'swa/science/l3/'
-    dir_mag = root_dir + 'mag/'
 
-    swa_files = filefinder.find_files_in_timeframe(dir_swa, timeframe[0], timeframe[1])
-    his_files = filefinder.find_files_in_timeframe(dir_his, timeframe[0], timeframe[1])
-    mag_files = filefinder.find_files_in_timeframe(dir_mag, timeframe[0], timeframe[1])
+    if ll: 
+        dir = root_dir + 'swa_lowlatency/'
+        swa_files = filefinder.find_files_in_timeframe(dir_swa, timeframe[0], timeframe[1])
 
-    print(swa_files, his_files, mag_files)
+
+    else:
+        dir_swa = root_dir + 'swa/science/l2/'
+        dir_his = root_dir + 'swa/science/l3/'
+        dir_mag = root_dir + 'mag/'
+
+        swa_files = filefinder.find_files_in_timeframe(dir_swa, timeframe[0], timeframe[1])
+        his_files = filefinder.find_files_in_timeframe(dir_his, timeframe[0], timeframe[1])
+        mag_files = filefinder.find_files_in_timeframe(dir_mag, timeframe[0], timeframe[1])
+
+        print(swa_files, his_files, mag_files)
 
        
     # GET COORDINATES
