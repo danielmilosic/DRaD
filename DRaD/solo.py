@@ -273,6 +273,7 @@ def plot(solo_df):
     import matplotlib.pyplot as plt
     import seaborn as sns
 
+    solo_df = solo_df[solo_df['V'] < 10000]
 
     # Create subplots with specified layout
     fig, axes = plt.subplots(nrows=8, ncols=1, figsize=(10, 12), sharex=True)
@@ -396,7 +397,7 @@ def delete(month):
     from DRaD import filefinder
     import os
 
-    timeframe = filefinder.get_month_dates(month)
+    timeframe = filefinder.get_month_dates(month, plus_one=False)
     root_dir = 'solar_orbiter_data/'
     
     dir_swa = root_dir + 'swa/science/l2'

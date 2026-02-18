@@ -264,7 +264,7 @@ def delete(month):
     from DRaD import filefinder
     import os
 
-    timeframe = filefinder.get_month_dates(month)
+    timeframe = filefinder.get_month_dates(month, plus_one=False)
     root_dir = 'stereo_data/'
     
     dir_impact = root_dir + '/impact/level1/behind'

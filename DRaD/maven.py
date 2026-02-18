@@ -462,7 +462,7 @@ def delete(month):
     from DRaD import filefinder
     import os
 
-    timeframe = filefinder.get_month_dates(month)
+    timeframe = filefinder.get_month_dates(month, plus_one=False)
 
     root_dir = 'maven_data/'
     maven_files = filefinder.find_files_in_timeframe(root_dir, timeframe[0], timeframe[1])

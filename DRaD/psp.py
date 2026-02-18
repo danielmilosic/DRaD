@@ -346,7 +346,7 @@ def delete(month):
     from DRaD import filefinder
     import os
 
-    timeframe = filefinder.get_month_dates(month)
+    timeframe = filefinder.get_month_dates(month, plus_one=False)
     root_dir = 'psp_data/'
     
     dir_fields = root_dir + 'fields/'
