@@ -20,5 +20,6 @@ def read_cdf_files_to_dataframe(cdf_file_list, variables_to_read):
             print(f"Skipping file {cdf_file_path} due to error: {e}")
 
     # Create a pandas DataFrame from the collected data
+    #print(data)
     df = pd.DataFrame(data)
     return df

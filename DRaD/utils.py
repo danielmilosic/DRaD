@@ -223,6 +223,9 @@ def plot_timeseries(timeseries_data):
     import matplotlib.pyplot as plt
     import seaborn as sns
 
+    for col in timeseries_data.columns:
+        timeseries_data.loc[timeseries_data[col] < -1000, col] = np.nan
+        timeseries_data.loc[timeseries_data[col] > 10000, col] = np.nan
     timeseries_data = timeseries_data.dropna(axis=1, how='all')
 
     fig, axes = plt.subplots(nrows=8, ncols=1, figsize=(10, 12), sharex=True)

@@ -110,46 +110,48 @@ def reduce(timeframe, cadence='0.1H'):
                 
                 print(os.path.getsize(f)/1000000, 'MB', f)
 
-                fields_loop_df = read_cdf_to_df.read_cdf_files_to_dataframe([f], ['epoch_mag_RTN', 'psp_fld_l2_mag_RTN'])
+                try: 
+                    fields_loop_df = read_cdf_to_df.read_cdf_files_to_dataframe([f], ['epoch_mag_RTN', 'psp_fld_l2_mag_RTN'])
 
-                # Resample and drop unnecessary columns
-                fields_loop_df = fields_loop_df.iloc[::10]
-                fields_loop_df['Time'] = Time(fields_loop_df['epoch_mag_RTN'], format='cdf_tt2000', scale='utc').to_datetime()
-                fields_loop_df.set_index('Time', inplace=True)
-                fields_loop_df['B_R'] = fields_loop_df['psp_fld_l2_mag_RTN'].apply(lambda lst: lst[0])
-                fields_loop_df['B_T'] = fields_loop_df['psp_fld_l2_mag_RTN'].apply(lambda lst: lst[1])
-                fields_loop_df['B_N'] = fields_loop_df['psp_fld_l2_mag_RTN'].apply(lambda lst: lst[2])
-                fields_loop_df.drop('psp_fld_l2_mag_RTN', axis=1, inplace=True)
-                fields_loop_df.drop('epoch_mag_RTN', axis=1, inplace=True)
+                    # Resample and drop unnecessary columns
+                    fields_loop_df = fields_loop_df.iloc[::10]
+                    fields_loop_df['Time'] = Time(fields_loop_df['epoch_mag_RTN'], format='cdf_tt2000', scale='utc').to_datetime()
+                    fields_loop_df.set_index('Time', inplace=True)
+                    fields_loop_df['B_R'] = fields_loop_df['psp_fld_l2_mag_RTN'].apply(lambda lst: lst[0])
+                    fields_loop_df['B_T'] = fields_loop_df['psp_fld_l2_mag_RTN'].apply(lambda lst: lst[1])
+                    fields_loop_df['B_N'] = fields_loop_df['psp_fld_l2_mag_RTN'].apply(lambda lst: lst[2])
+                    fields_loop_df.drop('psp_fld_l2_mag_RTN', axis=1, inplace=True)
+                    fields_loop_df.drop('epoch_mag_RTN', axis=1, inplace=True)
 
-                fields_loop_df = fields_loop_df.resample(rule=cadence).median(cadence)
+                    fields_loop_df = fields_loop_df.resample(rule=cadence).median(cadence)
 
-                fields_loop_df['B'] = np.sqrt(fields_loop_df['B_R']**2 + fields_loop_df['B_T']**2 + fields_loop_df['B_N']**2)
+                    fields_loop_df['B'] = np.sqrt(fields_loop_df['B_R']**2 + fields_loop_df['B_T']**2 + fields_loop_df['B_N']**2)
+                    
+                    
+                    # # GET COORDINATES
+                    # coord_df = fields_loop_df.resample(rule='2H').median()
+                    # carr_lons, psp_r, psp_lats, psp_lon = suppress_output(get_coordinates.get_coordinates, coord_df, 'PSP')
+                    
+                    # coord_df['CARR_LON'] = carr_lons      
+                    # coord_df['CARR_LON_RAD'] = coord_df['CARR_LON']/180*3.1415926
+                    # coord_df['LAT'] = psp_lats
+
+                    # psp_lon = np.asarray(psp_lon)
+                    # if (psp_lon < -175).any() & (psp_lon > 175).any():
+                    #     psp_lon[psp_lon < 0] += 360
+
+                    # coord_df['INERT_LON'] = psp_lon
+
+                    # coord_df = coord_df.reindex(fields_loop_df.index).interpolate(method='linear')
+                    # fields_loop_df['CARR_LON'] = coord_df['CARR_LON'] *np.nan
+                    # fields_loop_df.loc[coord_df.index, 'CARR_LON'] = get_coordinates.calculate_carrington_longitude_from_lon(coord_df.index, coord_df['INERT_LON'])
+                    # fields_loop_df['CARR_LON_RAD'] = fields_loop_df['CARR_LON']/180*3.1415926
+                    # fields_loop_df['LAT'] = coord_df['LAT'].copy()
+                    # fields_loop_df['INERT_LON'] = coord_df['INERT_LON'].copy()
                 
-                
-                # # GET COORDINATES
-                # coord_df = fields_loop_df.resample(rule='2H').median()
-                # carr_lons, psp_r, psp_lats, psp_lon = suppress_output(get_coordinates.get_coordinates, coord_df, 'PSP')
-                
-                # coord_df['CARR_LON'] = carr_lons      
-                # coord_df['CARR_LON_RAD'] = coord_df['CARR_LON']/180*3.1415926
-                # coord_df['LAT'] = psp_lats
-
-                # psp_lon = np.asarray(psp_lon)
-                # if (psp_lon < -175).any() & (psp_lon > 175).any():
-                #     psp_lon[psp_lon < 0] += 360
-
-                # coord_df['INERT_LON'] = psp_lon
-
-                # coord_df = coord_df.reindex(fields_loop_df.index).interpolate(method='linear')
-                # fields_loop_df['CARR_LON'] = coord_df['CARR_LON'] *np.nan
-                # fields_loop_df.loc[coord_df.index, 'CARR_LON'] = get_coordinates.calculate_carrington_longitude_from_lon(coord_df.index, coord_df['INERT_LON'])
-                # fields_loop_df['CARR_LON_RAD'] = fields_loop_df['CARR_LON']/180*3.1415926
-                # fields_loop_df['LAT'] = coord_df['LAT'].copy()
-                # fields_loop_df['INERT_LON'] = coord_df['INERT_LON'].copy()
-            
-
-                fields_df.append(fields_loop_df)
+                    fields_df.append(fields_loop_df)
+                except Exception as e:
+                    print(f"Skipping file {f} due to error: {e}")
 
         fields_df = pd.concat(fields_df, axis=0)
 
@@ -173,7 +175,7 @@ def reduce(timeframe, cadence='0.1H'):
         spi_df['V_N'] = spi_df['VEL_RTN_SUN'].apply(lambda lst: lst[2])
         spi_df['V'] = np.sqrt(spi_df['V_R']**2 + spi_df['V_T']**2 + spi_df['V_N']**2)
         spi_df['T'] = spi_df['TEMP']*11604.5 # eV  to K
-        spi_df['R'] = spi_df['SUN_DIST']/ 149597870.7 # km to AU
+        #spi_df['R'] = spi_df['SUN_DIST']/ 149597870.7 # km to AU
 
         spi_df = spi_df[spi_df['DENS'] < 1000]
         spi_df = spi_df[(spi_df['V'] < 850) & (spi_df['V'] > 200)]

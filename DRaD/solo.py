@@ -15,7 +15,7 @@ import urllib.parse
 import tarfile
 import os
 from datetime import datetime, timedelta
-
+import numpy as np
 
 
 def download_ll(START_DATE = "2025-10-01", END_DATE = "2025-10-05"):
@@ -266,10 +266,22 @@ def reduce(timeframe, cadence, ll=False):
 
     solo_df['Spacecraft_ID'] = 2
 
+    for col in solo_df.columns:
+        solo_df.loc[solo_df[col] < -1000, col] = np.nan
+        solo_df.loc[solo_df[col] > 10000, col] = np.nan
+
     return solo_df
 
 def plot(solo_df):
     
+    for col in solo_df.columns:
+        solo_df.loc[solo_df[col] < -1000, col] = np.nan
+        solo_df.loc[solo_df[col] > 10000, col] = np.nan
+        
+    solo_df = solo_df[solo_df['V_R'] < 10000]
+    solo_df = solo_df[solo_df['V_N'] < 10000]
+    solo_df = solo_df[solo_df['V_T'] < 10000]
+
     import matplotlib.pyplot as plt
     import seaborn as sns
 
