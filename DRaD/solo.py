@@ -268,7 +268,7 @@ def reduce(timeframe, cadence, ll=False):
 
     for col in solo_df.columns:
         solo_df.loc[solo_df[col] < -1000, col] = np.nan
-        solo_df.loc[solo_df[col] > 10000, col] = np.nan
+        solo_df.loc[solo_df[col] > 1000000, col] = np.nan
 
     return solo_df
 
@@ -276,7 +276,7 @@ def plot(solo_df):
     
     for col in solo_df.columns:
         solo_df.loc[solo_df[col] < -1000, col] = np.nan
-        solo_df.loc[solo_df[col] > 10000, col] = np.nan
+        solo_df.loc[solo_df[col] > 1000000, col] = np.nan
         
     solo_df = solo_df[solo_df['V_R'] < 10000]
     solo_df = solo_df[solo_df['V_N'] < 10000]
@@ -293,8 +293,8 @@ def plot(solo_df):
     # Plot multiple time series using seaborn's lineplot in each subplot
 
 
-    sns.lineplot(data=solo_df, x=solo_df.index, y='V', ax=axes[0], color='black')
-    sns.lineplot(data=solo_df, x=solo_df.index, y='V_R', ax=axes[0], color='blue', alpha=0.5)
+    sns.lineplot(data=solo_df, x=solo_df.index, y='V', ax=axes[0], color='black', label='V')
+    sns.lineplot(data=solo_df, x=solo_df.index, y='V_R', ax=axes[0], color='blue', alpha=0.5, label='V_R')
     axes[0].set_ylabel('V $[km s^{-1}]$')
 
     
@@ -332,7 +332,7 @@ def plot(solo_df):
     ax2 = axes[2].twinx()
     sns.lineplot(data=solo_df, x=solo_df.index, y='T',  ax=ax2, color='tab:blue')
     ax2.set_ylabel('T $[K]$')
-    #ax2.set_ylim([0, 2000000])
+    ax2.set_ylim([0, 2000000])
     ax2.spines['right'].set_color('tab:blue')
     ax2.yaxis.label.set_color('tab:blue')
     ax2.tick_params(axis='y', colors='tab:blue')

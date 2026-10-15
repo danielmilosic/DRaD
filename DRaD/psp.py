@@ -254,8 +254,8 @@ def plot(psp_df):
     psp_df = psp_df[~psp_df.index.duplicated(keep='first')]
 
 
-    sns.lineplot(data=psp_df, x=psp_df.index, y='V', ax=axes[0], color='black')
-    sns.lineplot(data=psp_df, x=psp_df.index, y='V_R', ax=axes[0], color='blue', alpha=0.5)
+    sns.lineplot(data=psp_df, x=psp_df.index, y='V', ax=axes[0], color='black', label='V')
+    sns.lineplot(data=psp_df, x=psp_df.index, y='V_R', ax=axes[0], color='blue', alpha=0.5, label='V_R')
     axes[0].set_ylabel('V $[km s^{-1}]$')
 
     
